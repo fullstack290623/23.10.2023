@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Table Example</title>
+</head>
+<body>
+    <h1>Todos</h1>
+
+    <!-- Table to display data -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Completed</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="data-table">
+            <!-- Data will be displayed here -->
+        </tbody>
+        <tr id="new-data-row">
+            <td></td>
+            <td><input type="text" id="new-title" placeholder="Enter title"></td>
+            <td><input type="text" id="new-completed" placeholder="Enter completed"></td>
+            <td><button id="add-button">+</button></td>
+        </tr>
+    </table>
+
+    <script>
+        // Function to fetch and display data in the table
+        async function fetchData() {
+            const response = await fetch('http://localhost:3000/todos');
+            const data = await response.json();
+            const table = document.getElementById('data-table');
+            table.innerHTML = ''; // Clear previous data
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.title}</td>
+                    <td>${item.completed}</td>
+                    <td>
+                        <button class="delete-button" data-id="${item.id}">Delete</button>
+                        <button class="update-button" data-id="${item.id}">Update</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            // Add event listeners for delete buttons
+            const deleteButtons = document.querySelectorAll('.delete-button');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const id = button.getAttribute('data-id');
+                    await deleteData(id);
+                    fetchData(); // Refresh the table after deletion
+                });
+            });
+
+            // Add event listeners for update buttons
+            const updateButtons = document.querySelectorAll('.update-button');
+            updateButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const id = button.getAttribute('data-id');
+                    const newTitle = prompt('Enter a new title:');
+                    const newCompleted = prompt('Enter a new completed status (e.g., "Yes" or "No"):');
+                    if (newTitle !== null && newCompleted !== null) {
+                        updateData(id, newTitle, newCompleted);
+                    }
+                });
+            });
+        }
+
+        // Function to delete data
+        async function deleteData(id) {
+            await fetch(`http://localhost:3000/todos/${id}`, {
+                method: 'DELETE'
+            });
+        }
+
+        // Function to update data
+        async function updateData(id, newTitle, newCompleted) {
+            await fetch(`http://localhost:3000/todos/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    title: newTitle,
+                    completed: newCompleted
+                }),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            });
+            fetchData(); // Refresh the table after update
+        }
+
+        // Function to add new data
+        document.getElementById('add-button').addEventListener('click', async () => {
+            const newTitle = document.getElementById('new-title').value;
+            const newCompleted = document.getElementById('new-completed').value;
+
+            if (newTitle && newCompleted) {
+                await addData(newTitle, newCompleted);
+                fetchData(); // Refresh the table after adding data
+            }
+        });
+
+        // Function to add new data
+        async function addData(title, completed) {
+            await fetch('http://localhost:3000/todos', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: title,
+                    completed: completed
+                }),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            });
+        }
+
+        // Initial data load
+        fetchData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>sweet demo</title>
+</head>
+
+<body>
+    <button onclick="save()">Save</button>
+    <script>
+        async function save() {
+            const result = await Swal.fire({
+                title: 'Do you want to save the changes?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Save',
+                denyButtonText: `Don't save`,
+            })
+
+            /* Read more about isConfirmed, isDenied below */
+            if (result.isConfirmed) {
+                await Swal.fire('Saved!', '', 'success')
+            } else if (result.isDenied) {
+                await Swal.fire('Changes are not saved', '', 'info')
+            }
+
+            console.log('when will it happen?');
+        }
+    </script>
+</body>
+
+</html>
